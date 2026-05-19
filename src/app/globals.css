@@ -3,25 +3,293 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --bg:         #0a0a0b;
+  --bg-card:    #121214;
+  --bg-elev:    #1a1a1d;
+  --bg-elev-2:  #232327;
+  --bg-hover:   #28282d;
+
+  /* Borders — subtle */
+  --border:        #232327;
+  --border-soft:   #1a1a1d;
+  --border-strong: #353539;
+
+  /* Text */
+  --text:    #f5f5f7;
+  --text-2:  #c7c7cc;
+  --muted:   #86868b;
+  --muted-2: #5c5c61;
+
+  /* Accent — red, taboo.tv vibe */
+  --accent:        #ef2b2b;
+  --accent-hover:  #ff3a3a;
+  --accent-deep:   #b81e1e;
+  --accent-tint:        rgba(239, 43, 43, 0.10);
+  --accent-tint-strong: rgba(239, 43, 43, 0.20);
+
+  /* Shadows — subtle Linear-style */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px -2px rgba(0,0,0,0.5);
+  --shadow-lg: 0 12px 32px -8px rgba(0,0,0,0.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.011em;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+::selection { background: var(--accent-tint-strong); color: white; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-elev-2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Hide native number spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* Components — in @layer components so Tailwind utilities override them */
+@layer components {
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .card-soft {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+  }
+  .surface {
+    background: var(--bg-elev);
+    border-radius: 8px;
+  }
+  .surface-2 {
+    background: var(--bg-elev-2);
+    border-radius: 8px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1;
+    background: var(--bg-elev);
+    color: var(--text);
+    border: 1px solid var(--border);
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+  .btn:active:not(:disabled) { transform: translateY(0.5px); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--bg-elev);
+    color: var(--text);
+  }
+  .btn-danger { color: #fca5a5; }
+  .btn-danger:hover {
+    background: rgba(239, 43, 43, 0.08);
+    border-color: rgba(239, 43, 43, 0.25);
+    color: #fda4a4;
+  }
+  .btn-sm { padding: 5px 10px; font-size: 12px; gap: 4px; border-radius: 6px; }
+  .btn-lg { padding: 9px 16px; font-size: 14px; border-radius: 8px; }
+
+  .input {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 7px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    outline: none;
+    font-size: 13.5px;
+    font-family: inherit;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  }
+  .input:hover { border-color: var(--border-strong); }
+  .input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-tint);
+  }
+  .input::placeholder { color: var(--muted-2); }
+  .input-lg { font-size: 15px; padding: 11px 14px; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2.5px 8px;
+    border-radius: 999px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.5;
+    font-weight: 500;
+    cursor: default;
+  }
+  .chip-accent {
+    background: var(--accent-tint);
+    border-color: rgba(239,43,43,0.3);
+    color: #fda4a4;
+  }
+  .chip-clickable { cursor: pointer; transition: background 0.12s; }
+  .chip-clickable:hover { background: var(--bg-hover); color: var(--text); }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .link {
+    color: var(--accent-hover);
+    text-decoration: none;
+    transition: color 0.12s;
+  }
+  .link:hover { color: white; }
+
+  .divider { border-top: 1px solid var(--border-soft); }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 0 0 var(--border-strong);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10.5px;
+    color: var(--muted);
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .clamp-1 { display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+  .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+}
+
+/* Soft card hover */
+.hoverable {
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.hoverable:hover {
+  background: var(--bg-elev);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ----- Keyframe animations ----- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 43, 43, 0.6); }
+  70%      { box-shadow: 0 0 0 8px rgba(239, 43, 43, 0); }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .anim-fade        { animation: fadeIn 0.24s ease both; }
+  .anim-fade-up     { animation: fadeInUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .anim-fade-down   { animation: fadeInDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .anim-stagger > * { animation: fadeInUp 0.36s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .anim-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+  .anim-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+  .anim-stagger > *:nth-child(3) { animation-delay: 0.08s; }
+  .anim-stagger > *:nth-child(4) { animation-delay: 0.11s; }
+  .anim-stagger > *:nth-child(5) { animation-delay: 0.14s; }
+  .anim-stagger > *:nth-child(6) { animation-delay: 0.17s; }
+  .anim-stagger > *:nth-child(7) { animation-delay: 0.20s; }
+  .anim-stagger > *:nth-child(8) { animation-delay: 0.23s; }
+  .anim-pulse-red   { animation: pulseRed 1.2s ease-out; }
+}
+
+/* Override default skeleton pulse with a shimmer */
+.animate-pulse {
+  position: relative;
+  overflow: hidden;
+}
+.animate-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  background-size: 800px 100%;
+  animation: shimmer 1.8s infinite linear;
+  pointer-events: none;
+}
+
+/* Smooth page enter */
+main { animation: fadeIn 0.2s ease both; }
+
+/* Smooth nav tab transition */
+nav a, nav button { transition: background 0.15s ease, color 0.15s ease; }
+
+/* Subtle button press */
+.btn:active:not(:disabled) { transform: translateY(0.5px) scale(0.99); }
+.btn-primary:active:not(:disabled) { animation: pulseRed 0.6s ease-out; }
+
+/* Reduced motion: respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

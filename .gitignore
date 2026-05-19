@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# user-generated data (start empty, never committed)
+/data/compilations.json
+/data/titles.json
+
+# Catalog + chunks (transcripts) ARE committed so the app works out of the box.
+# Re-run the scraper if you need to refresh them.
