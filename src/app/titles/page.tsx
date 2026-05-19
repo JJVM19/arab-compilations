@@ -108,9 +108,9 @@ export default function TitlesPage() {
       </header>
 
       {/* Idea generator */}
-      <section className="card p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+      <section className="card p-3 sm:p-4 space-y-3">
+        <div className="flex items-stretch sm:items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="relative flex-1 min-w-full sm:min-w-0">
             <Sparkles size={15} className="absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none" style={{ color: "var(--muted)" }} />
             <input
               type="text"

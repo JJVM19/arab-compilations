@@ -1,4 +1,4 @@
-import { getCompilations } from "@/lib/data";
+import { getCompilation } from "@/lib/data";
 
 function fmtTimecode(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -13,8 +13,7 @@ function csvEscape(s: string): string {
 }
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-  const c = getCompilations().find(x => x.id === id);
+  const c = await getCompilation(params.id);
   if (!c) return new Response("not found", { status: 404 });
   const header = ["#", "kind", "video_title", "video_url", "youtube_url_with_start", "in_tc", "out_tc", "duration_sec", "note"];
   const rows = c.clips.map((clip, i) => [

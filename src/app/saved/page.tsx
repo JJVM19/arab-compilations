@@ -81,8 +81,8 @@ export default function SavedPage() {
             const sr = Math.floor(totalSec) % 60;
             const compPreview = preview?.compId === c.id ? preview : null;
             return (
-              <div key={c.id} className="card p-4">
-                <div className="flex items-start justify-between gap-4">
+              <div key={c.id} className="card p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <Link href={`/workspace?id=${c.id}`} className="block">
                       <h3 className="text-[16px] font-semibold leading-tight hover:opacity-90" style={{ color: "var(--accent-hover)" }}>{c.title}</h3>
@@ -95,28 +95,28 @@ export default function SavedPage() {
                       <span className="chip">updated {fmtDate(c.updated_at)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0 min-w-[140px]">
+                  <div className="flex sm:flex-col gap-2 flex-shrink-0 sm:min-w-[140px]">
                     <Link
                       href={`/workspace?id=${c.id}`}
-                      className="btn btn-primary btn-lg justify-start"
+                      className="btn btn-primary btn-lg justify-center sm:justify-start flex-1 sm:flex-none"
                       style={{ paddingTop: 11, paddingBottom: 11 }}
                     >
                       <Hammer size={15} /> Resume
                     </Link>
                     <a
                       href={`/api/export/${c.id}`}
-                      className="btn btn-lg justify-start"
+                      className="btn btn-lg justify-center sm:justify-start flex-1 sm:flex-none"
                       style={{ paddingTop: 11, paddingBottom: 11 }}
                     >
-                      <FileDown size={15} /> Export CSV
+                      <FileDown size={15} /> <span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">CSV</span>
                     </a>
                     <ConfirmButton
-                      label={<><Trash2 size={15} /> Delete</>}
+                      label={<><Trash2 size={15} /> <span className="hidden sm:inline">Delete</span></>}
                       title="Delete compilation?"
                       message={`This will permanently delete "${c.title}" and all ${c.clips.length} clip${c.clips.length === 1 ? "" : "s"}. This cannot be undone.`}
                       confirmLabel="Delete forever"
                       onConfirm={() => del(c.id)}
-                      className="btn-lg justify-start"
+                      className="btn-lg justify-center sm:justify-start flex-1 sm:flex-none"
                     />
                   </div>
                 </div>

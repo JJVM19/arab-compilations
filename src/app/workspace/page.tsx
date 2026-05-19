@@ -156,7 +156,7 @@ function WorkspaceInner() {
     <div className="space-y-5">
       {/* Active compilation banner */}
       {comp && (
-        <div className="card px-4 py-3 flex items-center gap-3">
+        <div className="card px-3 sm:px-4 py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
           <div
             className="w-1 h-8 rounded-sm flex-shrink-0"
             style={{ background: "var(--accent)" }}
@@ -183,9 +183,9 @@ function WorkspaceInner() {
       )}
 
       {/* Search + actions */}
-      <div className="card p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
+      <div className="card p-3 sm:p-4 space-y-3">
+        <div className="flex items-stretch sm:items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="relative flex-1 min-w-full sm:min-w-0">
             <Search size={15} className="absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none" style={{ color: "var(--muted)" }} />
             <input
               type="text"
@@ -320,9 +320,14 @@ function ResultGroup({ group, meta, addedKey, onAdd }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h3 className="text-[14px] font-semibold leading-snug clamp-2">{group.title}</h3>
-            <Link href={`/video/${group.video_id}`} className="link text-[10.5px] flex items-center gap-1 flex-shrink-0">
-              Open <ExternalLink size={9} />
-            </Link>
+            <a
+              href={`https://www.youtube.com/watch?v=${group.video_id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="link text-[10.5px] flex items-center gap-1 flex-shrink-0"
+            >
+              YouTube <ExternalLink size={9} />
+            </a>
           </div>
           {meta && (
             <div className="mt-1 text-[10.5px] flex gap-2" style={{ color: "var(--muted)" }}>

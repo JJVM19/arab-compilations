@@ -85,7 +85,7 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-5">
-      <header className="flex items-end justify-between gap-3">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <h1 className="text-[24px] font-bold tracking-tight">Library</h1>
           <p className="mt-0.5 text-[13px]" style={{ color: "var(--muted)" }}>
@@ -98,7 +98,7 @@ export default function LibraryPage() {
       </header>
       <AddVideoModal open={addOpen} onClose={() => setAddOpen(false)} onAdded={reloadCatalog} />
 
-      <div className="flex gap-2 items-center flex-wrap">
+      <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[280px]">
           <Search size={15} className="absolute top-1/2 -translate-y-1/2 left-3 pointer-events-none" style={{ color: "var(--muted)" }} />
           <input

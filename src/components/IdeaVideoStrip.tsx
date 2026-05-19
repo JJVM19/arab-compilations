@@ -87,9 +87,15 @@ export function IdeaVideoStrip({ videoIds, videoMap, reasons, maxThumbs = 6, lay
                     )}
                   </div>
                 </div>
-                <Link href={`/video/${expanded}`} className="btn btn-sm flex-shrink-0" title="Open full video page">
-                  <ExternalLink size={11} /> Open
-                </Link>
+                <a
+                  href={`https://www.youtube.com/watch?v=${expanded}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-sm flex-shrink-0"
+                  title="Open on YouTube (new tab)"
+                >
+                  <ExternalLink size={11} /> YouTube
+                </a>
                 <button onClick={() => setExpanded(null)} className="btn btn-ghost btn-sm flex-shrink-0" title="Close preview">
                   <X size={12} />
                 </button>

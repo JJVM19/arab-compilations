@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             className="border-b sticky top-0 z-30 backdrop-blur-md"
             style={{ borderColor: "var(--border)", background: "rgba(11,11,12,0.78)" }}
           >
-            <div className="max-w-[1400px] mx-auto px-5 h-[52px] flex items-center justify-between gap-6">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-5 h-[52px] flex items-center justify-between gap-3 sm:gap-6">
               <Link href="/" className="flex items-center gap-2.5 group">
                 <div
                   className="w-7 h-7 rounded-md flex items-center justify-center font-bold text-white text-[13px] tracking-tighter shadow-sm"
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavBar />
             </div>
           </header>
-          <main className="max-w-[1400px] mx-auto px-5 py-6">{children}</main>
+          <main className="max-w-[1400px] mx-auto px-4 sm:px-5 py-4 sm:py-6">{children}</main>
         </WorkspaceProvider>
       </body>
     </html>
