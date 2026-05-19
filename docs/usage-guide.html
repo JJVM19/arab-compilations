@@ -13,25 +13,25 @@
   body {
     background: var(--bg); color: var(--fg);
     font-family: -apple-system, "Inter", "Segoe UI", Helvetica, sans-serif;
-    font-size: 9.5pt; line-height: 1.45;
+    font-size: 9pt; line-height: 1.4;
     letter-spacing: -0.01em;
   }
   .page { page-break-after: always; padding: 0; }
   .page:last-child { page-break-after: avoid; }
 
   h1 {
-    font-size: 22pt; font-weight: 800; letter-spacing: -0.02em;
+    font-size: 20pt; font-weight: 800; letter-spacing: -0.02em;
     margin-bottom: 4px;
   }
   h1 .red { color: var(--accent); }
   h2 {
-    font-size: 11pt; font-weight: 700; letter-spacing: -0.01em;
-    margin: 12px 0 4px;
+    font-size: 10.5pt; font-weight: 700; letter-spacing: -0.01em;
+    margin: 10px 0 4px;
     padding-bottom: 3px; border-bottom: 1px solid var(--border);
   }
   h3 {
-    font-size: 9.5pt; font-weight: 700;
-    margin: 6px 0 2px;
+    font-size: 9pt; font-weight: 700;
+    margin: 5px 0 2px;
   }
   p { color: #c7c7cc; margin-bottom: 6px; }
   strong { color: var(--fg); font-weight: 600; }
@@ -190,22 +190,11 @@
     <div class="step"><strong>6. Export CSV</strong><br><span class="muted">To editor</span></div>
   </div>
 
-  <h2 style="margin-top:10px">Context vs Moment clips — important</h2>
-  <p>Every clip is labeled as one of two kinds:</p>
-  <div class="grid">
-    <div class="card">
-      <h3><span class="pill pill-context">CONTEXT</span></h3>
-      <p style="margin-top:4px; font-size:8.5pt">20–60 second clips that set up the scenario — where Arab is, who he's with, what's at stake. Plays FIRST in the final compilation so the moment lands.</p>
-    </div>
-    <div class="card">
-      <h3><span class="pill pill-moment">MOMENT</span></h3>
-      <p style="margin-top:4px; font-size:8.5pt">30–180 second clips that ARE the payoff — the shocking line, the action, the wild reaction. The screenshot-worthy stuff. Plays after the context.</p>
-    </div>
-  </div>
-  <p style="margin-top:6px; font-size:8.5pt">Per video, Claude returns 1–2 context clips + 2–3 moments, ordered chronologically. The CSV export includes a <code>kind</code> column so your editor knows the role.</p>
+  <h2>Context vs Moment clips</h2>
+  <p style="font-size:8.5pt">Every clip is labeled <span class="pill pill-context">CONTEXT</span> (20–60s setup, plays first) or <span class="pill pill-moment">MOMENT</span> (30–180s payoff). Claude returns 1–2 context + 2–3 moments per video, in chronological order. The CSV export has a <code>kind</code> column so your editor knows the role each clip plays.</p>
 
   <div class="tip">
-    <strong>Tip — Title style.</strong> The AI avoids "I Spent X Days With Y" (those are Arab's own vlog hooks) and listicle phrasings. It produces multi-story-implying titles like "Times Brazil Got Out of Control" or "Why You Don't Mess With Favelas" — viral without screaming compilation.
+    <strong>Title style.</strong> The AI avoids "I Spent X Days With Y" (Arab's own vlog hooks) and listicle phrasings. It produces multi-story-implying titles — "Times Brazil Got Out of Control" or "Why You Don't Mess With Favelas" — viral without screaming compilation.
   </div>
 
   <div class="footer">
