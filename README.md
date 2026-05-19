@@ -69,20 +69,22 @@ Value: <your-server-IP>
 TTL:   3600
 ```
 
-### Option B — Railway
+### Option B — Railway (recommended)
 
-1. Push this repo to GitHub
-2. Create a new Railway service → connect the repo
-3. Set the env vars in Railway settings
-4. Add a custom domain `arab.visionclipping.com` in Railway → it'll give you a CNAME target
+`nixpacks.toml` in the repo root tells Railway to include `yt-dlp` so the Add Video flow works in production.
 
-**DNS**:
-```
-Type:  CNAME
-Name:  arab
-Value: <your-app>.up.railway.app
-TTL:   3600
-```
+1. railway.app → New Project → Deploy from GitHub repo → pick JJVM19/arab-compilations
+2. Service Settings → Variables → add all the env vars from `.env.local`
+3. Settings → Networking → Generate Domain (just to verify deploy works)
+4. Settings → Networking → Custom Domain → enter `arab.visionclipping.com` → Railway gives you a CNAME target
+
+**DNS (GoDaddy)**:
+
+| Type  | Name | Value                       | TTL |
+|-------|------|-----------------------------|-----|
+| CNAME | arab | (Railway's CNAME target)    | 1h  |
+
+**Note on the Add Video feature**: Railway has an ephemeral filesystem by default. When you add a video in production, it writes to `data/catalog.json` and `data/chunks.json` on the container — those changes are lost on the next deploy. For a personal tool the workflow is: add new videos locally, commit + push, Railway redeploys with the new data. If you want true persistence on Railway, attach a volume at `/app/data` in the service settings.
 
 ### Option C — Render
 

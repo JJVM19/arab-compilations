@@ -1,0 +1,9 @@
+# Railway / Nixpacks build config.
+# Extends the default Node.js detection and adds yt-dlp so the
+# /api/library/add endpoint can download YouTube auto-captions.
+
+[phases.setup]
+nixPkgs = ["...", "yt-dlp"]
+
+[start]
+cmd = "npm start"
