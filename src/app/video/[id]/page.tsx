@@ -6,7 +6,7 @@ import type { ChunkedVideo, Video } from "@/lib/types";
 import { fmtDate, fmtDuration, fmtTimestamp, fmtViews, watchUrl } from "@/lib/utils";
 import { ClipPlayer, ClipPlayerHandle } from "@/components/ClipPlayer";
 
-interface AiSegment { start: number; end: number; why: string; quote?: string }
+interface AiSegment { start: number; end: number; why: string; quote?: string; kind?: "context" | "moment" }
 
 const QUICK_THEMES = ["Craziest moments", "Most dangerous moments", "Funniest moments", "Most shocking quotes"];
 
@@ -177,8 +177,20 @@ export default function VideoPage({ params }: { params: { id: string } }) {
                               <Play size={9} fill="currentColor" color={isActive ? "white" : "var(--muted)"} style={{ marginLeft: 1 }} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-[10px] font-mono" style={{ color: isActive ? "white" : "var(--accent-hover)" }}>
-                                {fmtTimestamp(s.start)}–{fmtTimestamp(s.end)} · {Math.round(s.end - s.start)}s
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                {s.kind && (
+                                  <span
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wider"
+                                    style={s.kind === "moment"
+                                      ? { background: "var(--accent)", color: "white" }
+                                      : { background: "var(--bg-elev-2)", color: "var(--muted)", border: "1px solid var(--border)" }}
+                                  >
+                                    {s.kind}
+                                  </span>
+                                )}
+                                <span className="text-[10px] font-mono" style={{ color: isActive ? "white" : "var(--accent-hover)" }}>
+                                  {fmtTimestamp(s.start)}–{fmtTimestamp(s.end)} · {Math.round(s.end - s.start)}s
+                                </span>
                               </div>
                               <p className="text-[11.5px] mt-0.5 leading-snug">{s.why}</p>
                               {s.quote && (

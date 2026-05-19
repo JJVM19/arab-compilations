@@ -16,9 +16,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const { id } = params;
   const c = getCompilations().find(x => x.id === id);
   if (!c) return new Response("not found", { status: 404 });
-  const header = ["#", "video_title", "video_url", "youtube_url_with_start", "in_tc", "out_tc", "duration_sec", "note"];
+  const header = ["#", "kind", "video_title", "video_url", "youtube_url_with_start", "in_tc", "out_tc", "duration_sec", "note"];
   const rows = c.clips.map((clip, i) => [
     (i + 1).toString(),
+    clip.kind ?? "",
     clip.video_title,
     clip.video_url,
     `${clip.video_url}&t=${Math.floor(clip.start)}s`,

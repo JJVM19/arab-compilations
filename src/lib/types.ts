@@ -64,6 +64,8 @@ export interface SavedClip {
   start: number;
   end: number;
   note: string;
+  /** "context" = setup; "moment" = peak/payoff. Optional for back-compat. */
+  kind?: "context" | "moment";
 }
 
 export interface SavedTitle {

@@ -72,7 +72,7 @@ function WorkspaceInner() {
     finally { setLoadingSearch(false); }
   }
 
-  async function addClip(group: SearchResultGroup, seg: { start: number; end: number; why: string; quote?: string }) {
+  async function addClip(group: SearchResultGroup, seg: { start: number; end: number; why: string; quote?: string; kind?: "context" | "moment" }) {
     // Ensure there's an active comp
     let target = comp;
     if (!target) {
@@ -92,6 +92,7 @@ function WorkspaceInner() {
       video_url: group.url,
       start: seg.start, end: seg.end,
       note: seg.quote || seg.why,
+      kind: seg.kind,
     };
     const resp = await fetch(`/api/compilations/${target!.id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" },
@@ -280,6 +281,23 @@ function WorkspaceInner() {
  * Subcomponents
  * --------------------------------------------------------- */
 
+function KindBadge({ kind }: { kind?: "context" | "moment" }) {
+  if (!kind) return null;
+  const isMoment = kind === "moment";
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase"
+      style={isMoment
+        ? { background: "var(--accent)", color: "white" }
+        : { background: "var(--bg-elev-2)", color: "var(--muted)", border: "1px solid var(--border)" }
+      }
+      title={isMoment ? "The peak/payoff moment" : "Setup / scenario context"}
+    >
+      {kind}
+    </span>
+  );
+}
+
 
 function ResultGroup({ group, meta, addedKey, onAdd }: {
   group: SearchResultGroup;
@@ -337,8 +355,11 @@ function ResultGroup({ group, meta, addedKey, onAdd }: {
                   className="w-28 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0 py-0.5">
-                  <div className="text-[10.5px] font-mono mb-0.5" style={{ color: "var(--accent-hover)" }}>
-                    {fmtTimestamp(s.start)}–{fmtTimestamp(s.end)} · {Math.round(s.end - s.start)}s
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <KindBadge kind={s.kind} />
+                    <span className="text-[10.5px] font-mono" style={{ color: "var(--accent-hover)" }}>
+                      {fmtTimestamp(s.start)}–{fmtTimestamp(s.end)} · {Math.round(s.end - s.start)}s
+                    </span>
                   </div>
                   <p className="text-[12px] leading-snug clamp-2">{s.why}</p>
                   {s.quote && (
@@ -436,6 +457,9 @@ function CompPanel({ comp, onRemove, onMove }: {
                   className="w-20 flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0 py-0.5">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <KindBadge kind={c.kind} />
+                  </div>
                   <div className="text-[11px] font-medium clamp-2 leading-snug">{c.video_title}</div>
                   <div className="text-[10px] font-mono mt-0.5" style={{ color: "var(--accent-hover)" }}>
                     {fmtTimestamp(c.start)}–{fmtTimestamp(c.end)}

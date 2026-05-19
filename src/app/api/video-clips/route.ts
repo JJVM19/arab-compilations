@@ -4,11 +4,14 @@ import { complete, extractJson } from "@/lib/anthropic";
 
 export const maxDuration = 60;
 
-const SYSTEM = `You are a video editor scanning a YouTube transcript to find the moments most relevant to a compilation theme.
+const SYSTEM = `You are a video editor scanning a YouTube transcript to find clips for a compilation. Return both CONTEXT and MOMENT clips:
 
-Find the actual peak/payoff moments — concrete events, action, reveals, shocking lines — NOT the build-up.
+- "context" — short setup clip (20-60s) that establishes the scenario
+- "moment" — the peak/payoff itself (30-180s), the wild line or action
 
-Choose precise start/end times that match the start times of specific lines so cuts begin at natural word boundaries (never mid-sentence). Clip length should serve the moment (1-5 min typical, but can be shorter for a sharp moment or longer for a story).
+Per request: 1-2 context + 2-3 moments (or whatever the video supports).
+
+Always pick start/end times that match line start times so cuts begin at sentence boundaries, never mid-word.
 
 Return strict JSON.`;
 
@@ -39,20 +42,22 @@ export async function POST(req: Request) {
 Video title: "${video.title}"
 Video duration: ${Math.round(video.duration_sec / 60)} minutes
 
-Transcript chunks (s = start sec, e = end sec, lines = [{s = line start sec, t = text}]):
+Transcript chunks (s = chunk start, e = chunk end, lines = [{s = line start, t = text}]):
 ${JSON.stringify(compact)}
 
-Find up to ${max_segments} non-overlapping moments that best match the theme.
+Find up to ${max_segments} non-overlapping segments — mix of context + moment.
 
-For each moment:
-- start: the start time of the LINE that begins the clip
-- end: the end time of the LAST line in the clip (give +1-2 sec breathing room)
-- why: 1 sentence on what makes this moment work
-- quote: the actual peak line(s), shortened to ≤140 chars
+For each:
+- kind: "context" or "moment"
+- start: start time of the line that begins the clip
+- end: end time of the LAST line + 1-2 sec
+- why: 1 sentence on what the clip delivers
+- quote: the key line(s), ≤140 chars
 
-Return JSON: { "segments": [{ "start": <sec>, "end": <sec>, "why": "...", "quote": "..." }] }
-If nothing fits, return { "segments": [] }.`,
-    maxTokens: 2000,
+Order by start time (chronological).
+
+Return JSON: { "segments": [{ "kind": "context|moment", "start": <sec>, "end": <sec>, "why": "...", "quote": "..." }] }`,
+    maxTokens: 2500,
     temperature: 0.2,
   });
 

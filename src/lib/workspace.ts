@@ -11,6 +11,8 @@ export interface SearchSegment {
   end: number;
   why: string;
   quote?: string;
+  /** "context" = setup; "moment" = peak/payoff */
+  kind: "context" | "moment";
 }
 
 export interface SearchResultGroup {

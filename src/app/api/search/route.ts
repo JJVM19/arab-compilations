@@ -7,46 +7,45 @@ export const maxDuration = 180;
 
 const STAGE1_SYS = `Pick the most relevant videos from a YouTube catalog that match a compilation theme. Return strict JSON.`;
 
-const STAGE2_SYS = `You are a video editor scanning a YouTube transcript to find the BEST MOMENTS that match a compilation theme.
+const STAGE2_SYS = `You are a video editor scanning a YouTube transcript to find clips for a compilation. You return TWO kinds of clips per video:
 
-# What is a "moment"
-A moment is the peak/payoff itself — the shocking line, the actual event, the wild reaction, the specific scene. NOT the 5 minutes of context leading up to it.
+# 1. CONTEXT clips ("kind": "context")
+Short clips (20-60 seconds) that set up the scenario so a stranger could understand what's happening when the moment hits. Good context clips:
+- Establish where Arab is and what he's doing
+- Introduce key people, places, or stakes
+- Quietly land the premise without giving away the punchline
 
-Find the moments themselves. Include just enough setup to make the moment land (usually 5-30 seconds of context), then end right after the payoff. Don't drag.
+In the final compilation, context clips will play FIRST, then the moment.
 
-If a theme is "scary moments" and the whole video is about a scary trip, that doesn't mean the whole video is the clip. Find the SPECIFIC moments where something scary actually happens or is revealed — gunfire, a threat, a chase, a revelation that someone is a killer, etc.
+# 2. MOMENT clips ("kind": "moment")
+The actual peak/payoff — the shocking line, the action, the reveal, the wild reaction. The clip a viewer would screenshot. Typical length 30-180 seconds. Stop right after the payoff lands.
+
+# Per video, aim for:
+- 1-2 context clips
+- 2-3 moment clips
+(skip context if the video opens with the moment cold)
 
 # Choosing precise start/end times — CRUCIAL
-The transcript has line-level data. Each line has a start time. **Always pick start/end times that match the start of a specific line** so the cut begins at a natural word boundary, never mid-sentence.
+Each transcript has line-level data (s = start sec, t = text). Pick start/end times that MATCH a line's start time so clips begin at natural word boundaries, never mid-sentence.
 
-- start: pick the start time of the line that begins the moment (or the line that begins the brief setup before it)
-- end: pick the END time of the last line that delivers the payoff. After that, cut.
-
-If a video has lines like:
-  [120.5s] we walked into the room and saw
-  [122.3s] three guys with masks pointing guns at me
-  [125.1s] one of them said get on the ground
-Then a good clip starting at the threat would be start=120.5, end=127+ (extending past the last line a bit).
-
-# Clip length
-Target 1-5 minutes per clip, but length should serve the moment. A 90s clip is fine if that's the moment. A 4-minute clip is fine if the story needs that. Don't artificially extend or compress.
+- start = start time of the line that opens the clip
+- end = end time of the LAST line, +1-2 sec breathing room
 
 # What to avoid
 - Generic intros ("Hey YouTube, welcome back")
-- Sponsor reads
-- "Subscribe" plugs
-- Long meandering setup with no payoff
-- Multiple unrelated moments stitched together (pick them as separate segments)
+- Sponsor reads / "Subscribe" plugs
+- Long meandering setup with no payoff (context should be SHORT)
+- Multiple unrelated moments stitched into one segment
 
 Return strict JSON.`;
 
-interface Body { theme: string; max_videos?: number; max_segments_per_video?: number }
+interface Body { theme: string; max_videos?: number }
 
 interface CompactLine { s: number; t: string }
 interface CompactChunk { i: number; s: number; e: number; lines: CompactLine[] }
 
 export async function POST(req: Request) {
-  const { theme, max_videos = 8, max_segments_per_video = 3 } = await req.json() as Body;
+  const { theme, max_videos = 8 } = await req.json() as Body;
   if (!theme?.trim()) {
     return NextResponse.json({ error: "theme required" }, { status: 400 });
   }
@@ -101,22 +100,23 @@ Return JSON: { "videos": [{ "id": "...", "reason": "1-sentence why" }] }`,
 Video title: "${video.title}"
 Video duration: ${Math.round(video.duration_sec / 60)} minutes
 
-Transcript chunks. Each chunk has line-level data (s = line start time in seconds, t = line text). Use the line start times to choose precise cut points at word boundaries.
+Transcript chunks (s = chunk start sec, e = chunk end sec, lines = [{s = line start sec, t = text}]).
 
 ${JSON.stringify(compact)}
 
-Find up to ${max_segments_per_video} non-overlapping moments that best match the theme.
+Return both CONTEXT and MOMENT clips (1-2 context + 2-3 moments per video). The context clips will play FIRST in the final compilation to set up the scenario, then the moments deliver the payoff.
 
-For each moment:
-- start: the start time of the LINE that begins the clip (or just before)
-- end: the end time of the LAST line in the clip (give it +1-2 sec breathing room)
-- why: 1 sentence on what makes this moment work
-- quote: the actual peak line(s) from the transcript, shortened to ≤150 chars, in quotes
+For each segment:
+- kind: "context" or "moment"
+- start: start time of the LINE that begins the clip
+- end: end time of the LAST line + 1-2 sec
+- why: 1 sentence on what this clip delivers
+- quote: the key line(s), ≤140 chars, in quotes
 
-If no moments fit, return { "segments": [] }.
+Order segments chronologically (by start time) in the array. If nothing fits, return { "segments": [] }.
 
-Return JSON: { "segments": [{ "start": <sec>, "end": <sec>, "why": "...", "quote": "..." }] }`,
-      maxTokens: 2500,
+Return JSON: { "segments": [{ "kind": "context|moment", "start": <sec>, "end": <sec>, "why": "...", "quote": "..." }] }`,
+      maxTokens: 3000,
       temperature: 0.2,
     });
     const parsed = extractJson<{ segments: any[] }>(out) || { segments: [] };

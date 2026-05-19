@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Compilations Studio — Usage Guide</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  :root {
+    --bg: #0a0a0b; --fg: #f5f5f7; --muted: #86868b; --accent: #ef2b2b;
+    --card: #141416; --border: #2a2a2f; --tint: rgba(239,43,43,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, "Inter", "Segoe UI", Helvetica, sans-serif;
+    font-size: 9.5pt; line-height: 1.45;
+    letter-spacing: -0.01em;
+  }
+  .page { page-break-after: always; padding: 0; }
+  .page:last-child { page-break-after: avoid; }
+
+  h1 {
+    font-size: 22pt; font-weight: 800; letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  h1 .red { color: var(--accent); }
+  h2 {
+    font-size: 11pt; font-weight: 700; letter-spacing: -0.01em;
+    margin: 14px 0 4px;
+    padding-bottom: 3px; border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 9.5pt; font-weight: 700;
+    margin: 6px 0 2px;
+  }
+  p { color: #c7c7cc; margin-bottom: 6px; }
+  strong { color: var(--fg); font-weight: 600; }
+  .muted { color: var(--muted); font-size: 8.5pt; }
+  .accent { color: var(--accent); font-weight: 600; }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .logo {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .logo .badge {
+    width: 18pt; height: 18pt; border-radius: 4px;
+    background: linear-gradient(135deg, #ef2b2b, #b81e1e);
+    color: white; font-weight: 800; font-size: 11pt;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 1px 6px; border-radius: 99px;
+    background: var(--tint); color: var(--accent);
+    font-size: 7.5pt; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 4px;
+  }
+  .grid-3 {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px; margin-top: 4px;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 9px;
+  }
+  .card .num {
+    color: var(--accent); font-weight: 800; font-family: ui-monospace, monospace;
+  }
+
+  .flow {
+    display: flex; gap: 4px; align-items: center; margin: 6px 0;
+    font-size: 8.5pt;
+  }
+  .flow .step {
+    flex: 1;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px 6px;
+    text-align: center;
+  }
+  .flow .arrow { color: var(--muted); }
+
+  ul { padding-left: 16px; }
+  li { margin: 2px 0; color: #c7c7cc; }
+
+  code, .kbd {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 8.5pt;
+    padding: 0 4px; border-radius: 3px;
+    background: #1a1a1d; border: 1px solid var(--border);
+    color: #e5e5e7;
+  }
+
+  .tip {
+    background: var(--tint); border-left: 2px solid var(--accent);
+    padding: 5px 8px; margin: 5px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 8.5pt;
+  }
+  .tip strong { color: #fda4a4; }
+
+  .footer {
+    margin-top: 12px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: 7.5pt; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+
+  .columns {
+    column-count: 2; column-gap: 14px; column-rule: 1px solid var(--border);
+  }
+  .columns h3 { break-after: avoid; }
+  .columns p, .columns ul { break-inside: avoid; }
+
+  .mini-shot {
+    background: #0d0d0f; border: 1px solid var(--border); border-radius: 5px;
+    padding: 8px; font-size: 8pt; line-height: 1.4;
+  }
+  .mini-shot .row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 4px;
+  }
+  .mini-shot .row strong { font-size: 9pt; }
+  .mini-shot .btn {
+    display: inline-block; padding: 1px 6px;
+    background: var(--accent); color: white;
+    border-radius: 3px; font-size: 7.5pt; font-weight: 600;
+  }
+  .mini-shot .btn-ghost {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============= PAGE 1 ============= -->
+<section class="page">
+
+  <div class="header">
+    <div>
+      <h1>Compilations <span class="red">Studio</span></h1>
+      <p class="muted">Usage guide — turn @Arab&apos;s catalog into compilation videos</p>
+    </div>
+    <div class="logo">
+      <span class="badge">A</span>
+      <span style="font-weight:700">@Arab</span>
+    </div>
+  </div>
+
+  <h2>The 60-second pitch</h2>
+  <p>You give it a theme. Claude scans every transcript, returns the best moments with timestamps anchored to the start of a sentence, and lets you assemble a clip list to export for your editor. Built for shipping themed compilations off @Arab&apos;s longform catalog.</p>
+
+  <div class="grid">
+    <div class="card"><strong>106</strong> <span class="muted">longform videos indexed</span></div>
+    <div class="card"><strong>4,305</strong> <span class="muted">transcript chunks</span></div>
+    <div class="card"><strong>53 hours</strong> <span class="muted">of footage</span></div>
+    <div class="card"><strong>96M+</strong> <span class="muted">total views</span></div>
+  </div>
+
+  <h2>The four tabs</h2>
+
+  <div class="grid">
+    <div class="card">
+      <h3><span class="pill">01</span> Library</h3>
+      <p class="muted" style="margin-top:3px">Browse every video. Use <strong>AI search</strong> to rank by relevance to a topic (e.g. <em>"eating crazy food"</em> &rarr; rat poison, hallucination honey, jungle cuisine). Each card has a 0–100 score badge. Click any video for the player + full transcript.</p>
+    </div>
+    <div class="card">
+      <h3><span class="pill">02</span> Workspace</h3>
+      <p class="muted" style="margin-top:3px">The build view. Type a theme &rarr; <code>Find moments</code> &rarr; Claude returns clip cards grouped by video. Click a thumbnail to preview in the persistent right-side player. Click <code>+ Add</code> to assemble.</p>
+    </div>
+    <div class="card">
+      <h3><span class="pill">03</span> Titles</h3>
+      <p class="muted" style="margin-top:3px">Brainstorm viral compilation titles. Claude proposes 8 options with alt titles + source video suggestions. <code>Save</code> the ones you like, or <code>Build</code> to drop into the Workspace.</p>
+    </div>
+    <div class="card">
+      <h3><span class="pill">04</span> Saved</h3>
+      <p class="muted" style="margin-top:3px">All your in-progress compilations. Click any clip thumbnail to preview inline. <code>Resume</code> to keep working, <code>Export CSV</code> for your editor, <code>Delete</code> when done.</p>
+    </div>
+  </div>
+
+  <h2>End-to-end workflow</h2>
+
+  <div class="flow">
+    <div class="step"><strong>1. Titles</strong><br><span class="muted">Brainstorm pitch</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><strong>2. Save</strong><br><span class="muted">Bookmark good ones</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><strong>3. Build</strong><br><span class="muted">Triggers workspace</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><strong>4. Find moments</strong><br><span class="muted">Pull clips</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><strong>5. + Add</strong><br><span class="muted">Assemble</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><strong>6. Export CSV</strong><br><span class="muted">Hand to editor</span></div>
+  </div>
+
+  <div class="tip">
+    <strong>Tip — Title style.</strong> The AI is trained to avoid <em>"I Spent X Days With Y"</em> (Arab&apos;s own vlog hooks) and listicle phrasings. It produces multi-story-implying titles like <em>"Times Brazil Got Out of Control"</em> or <em>"Why You Don&apos;t Mess With Favelas"</em> — viral without screaming compilation.
+  </div>
+
+  <h2>Two ways to start a compilation</h2>
+
+  <div class="grid">
+    <div class="card">
+      <h3>From a Title</h3>
+      <ol style="padding-left:14px; font-size:8.5pt; color:#c7c7cc">
+        <li>Go to <strong>Titles</strong></li>
+        <li>Type a seed theme or leave blank</li>
+        <li>Click <strong>Generate ideas</strong></li>
+        <li>Pick one &rarr; <strong>Build</strong></li>
+        <li>You&apos;re dropped into the Workspace with the title pre-loaded and moments already searching</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Directly in Workspace</h3>
+      <ol style="padding-left:14px; font-size:8.5pt; color:#c7c7cc">
+        <li>Go to <strong>Workspace</strong></li>
+        <li>Type a theme like <em>&quot;moments locals turned on him&quot;</em></li>
+        <li>Click <strong>Find moments</strong></li>
+        <li>Add clips you like — first <code>+ Add</code> creates a new untitled compilation automatically</li>
+        <li>Rename it inline anytime</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>compilations.visionclipping</span>
+    <span>Page 1 / 2</span>
+  </div>
+</section>
+
+<!-- ============= PAGE 2 ============= -->
+<section class="page">
+
+  <div class="header">
+    <div>
+      <h2 style="border:none; margin:0; font-size:14pt">Tips, shortcuts & power moves</h2>
+      <p class="muted">Page 2 — the stuff that&apos;ll save you time</p>
+    </div>
+    <div class="logo">
+      <span class="badge">A</span>
+    </div>
+  </div>
+
+  <div class="columns">
+
+    <h3>How clip extraction actually works</h3>
+    <p>Each video&apos;s transcript is split into ~45-second chunks, but each chunk keeps the underlying line-level YouTube auto-caption timing. When you search, the AI:</p>
+    <ul>
+      <li><strong>Stage 1</strong> — ranks all 106 video titles + descriptions for relevance to your theme</li>
+      <li><strong>Stage 2</strong> — scans the top 8 picked videos&apos; transcripts in parallel</li>
+      <li>Returns 1–5 minute moments with <span class="accent">start times that match a line boundary</span> — clips never start mid-word</li>
+    </ul>
+
+    <h3>The persistent inline player</h3>
+    <p>One <strong>iframe</strong> for the whole app. Clicking different clip thumbnails seeks via <code>postMessage</code> instead of reloading. You can switch between 8 clips in 8 seconds without YouTube re-loading once.</p>
+
+    <h3>State persists across tabs</h3>
+    <p>Your theme, generated ideas, search results, and active compilation are saved to <code>localStorage</code>. Navigate to Library, come back, everything&apos;s still there. Same after refresh.</p>
+
+    <h3>AI Library search</h3>
+    <p>Plain text search only matches title/description substrings. <strong>AI search</strong> (Sparkles icon) sends your query + the whole 106-video index to Claude with a relevance scoring rubric.</p>
+    <ul>
+      <li>90–100 = dominant subject</li>
+      <li>70–89 = strong match</li>
+      <li>40–69 = touched on</li>
+      <li>&lt;25 filtered out</li>
+    </ul>
+
+    <h3>Adding new @Arab uploads</h3>
+    <p>On the Library page, hit <strong>+ Add video</strong>. Paste any YouTube URL or 11-char ID. The server:</p>
+    <ol style="padding-left:14px">
+      <li>Fetches metadata via YouTube API</li>
+      <li>Validates channel = @Arab</li>
+      <li>Shells out to <code>yt-dlp</code> for auto-captions</li>
+      <li>Parses VTT, dedupes rolling-caption duplicates, chunks at ~45s</li>
+      <li>Appends to <code>catalog.json</code> + <code>chunks.json</code></li>
+    </ol>
+    <p>Available in the next AI search instantly.</p>
+
+    <h3>CSV export format</h3>
+    <p>Each row in the export is one clip: <code>#</code>, video title, full URL, URL with <code>?t=Xs</code> jump, in-timecode (HH:MM:SS), out-timecode, duration_sec, note (the quoted line).</p>
+
+    <h3>Saved Titles vs Saved Compilations</h3>
+    <ul>
+      <li><strong>Titles</strong> = an idea + suggested videos, no clips assembled yet. Bookmarks for later.</li>
+      <li><strong>Saved</strong> = an actual compilation with picked clips, timestamps, ready to export.</li>
+    </ul>
+
+    <h3>Keyboard shortcuts</h3>
+    <ul>
+      <li><span class="kbd">Enter</span> in the workspace theme input — Find moments</li>
+      <li><span class="kbd">Enter</span> in the titles theme input — Generate ideas</li>
+      <li><span class="kbd">Esc</span> in any modal — Cancel</li>
+      <li><span class="kbd">Enter</span> in delete modal — Confirm</li>
+    </ul>
+
+    <h3>Tabs of @Arab&apos;s catalog</h3>
+    <p>106 videos, filtered to 10+ minutes, post Sept 2022 (Turkey Replica cutoff). Excluded: streaming/gaming/Tinder rating content per blacklist. Re-run scraper to refresh.</p>
+
+  </div>
+
+  <h2>Visual cheat sheet</h2>
+
+  <div class="grid-3">
+
+    <div class="mini-shot">
+      <div class="row"><strong>Workspace</strong> <span class="pill">02</span></div>
+      <p class="muted">Type theme &rarr; <span class="btn">Find moments</span></p>
+      <p style="margin-top:4px"><span class="accent">›</span> Click thumbnail &rarr; plays in right panel</p>
+      <p><span class="accent">›</span> <span class="btn">+ Add</span> &rarr; into compilation</p>
+    </div>
+
+    <div class="mini-shot">
+      <div class="row"><strong>Titles</strong> <span class="pill">03</span></div>
+      <p class="muted">Seed theme &rarr; <span class="btn">Generate ideas</span></p>
+      <p style="margin-top:4px"><span class="accent">›</span> Each idea &rarr; <span class="btn-ghost btn">Save</span> or <span class="btn">Build</span></p>
+      <p><span class="accent">›</span> Saved sit below for later</p>
+    </div>
+
+    <div class="mini-shot">
+      <div class="row"><strong>Saved</strong> <span class="pill">04</span></div>
+      <p class="muted">Click any thumb &rarr; inline preview</p>
+      <p style="margin-top:4px"><span class="accent">›</span> <span class="btn">Resume</span> = back to workspace</p>
+      <p><span class="accent">›</span> <span class="btn-ghost btn">Export CSV</span> &rarr; editor file</p>
+    </div>
+
+  </div>
+
+  <div class="tip">
+    <strong>Tip — Don&apos;t overload one compilation.</strong> Target 15–60 minutes. 8 clips at 90 seconds each = a tight 12-minute video. Quality &gt; quantity. Click each clip&apos;s thumbnail to preview before adding so you know it actually delivers.
+  </div>
+
+  <div class="footer">
+    <span>github.com/JJVM19/arab-compilations</span>
+    <span>Page 2 / 2</span>
+  </div>
+</section>
+
+</body>
+</html>
