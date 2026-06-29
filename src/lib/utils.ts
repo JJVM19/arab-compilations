@@ -18,6 +18,28 @@ export function fmtTimestamp(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Parse a human-typed timestamp into seconds.
+ * Accepts "83", "1:23", "1:23.5", "1:02:03" (h:m:s), or "1:02:03.4".
+ * Returns null if it can't be parsed so callers can keep the old value.
+ */
+export function parseTimestamp(input: string): number | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  // Plain seconds (possibly decimal)
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  const parts = raw.split(":");
+  if (parts.length < 2 || parts.length > 3) return null;
+  for (const p of parts) {
+    if (!/^\d+(\.\d+)?$/.test(p.trim())) return null;
+  }
+  const nums = parts.map(p => Number(p));
+  let sec = 0;
+  if (nums.length === 3) sec = nums[0] * 3600 + nums[1] * 60 + nums[2];
+  else sec = nums[0] * 60 + nums[1];
+  return Number.isFinite(sec) ? sec : null;
+}
+
 export function thumbnailUrl(videoId: string, quality: "default" | "mq" | "hq" | "max" = "mq"): string {
   const map = { default: "default", mq: "mqdefault", hq: "hqdefault", max: "maxresdefault" };
   return `https://i.ytimg.com/vi/${videoId}/${map[quality]}.jpg`;

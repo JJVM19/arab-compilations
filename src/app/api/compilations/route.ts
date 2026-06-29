@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCompilations, upsertCompilation } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const compilations = await getCompilations();
   return NextResponse.json({ compilations });

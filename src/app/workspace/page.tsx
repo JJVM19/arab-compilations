@@ -5,19 +5,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Search, Loader2, X, FileDown, Plus, Check, ExternalLink } from "lucide-react";
 import type { Catalog, SavedClip, SavedCompilation, Video } from "@/lib/types";
 import type { SearchResultGroup } from "@/lib/workspace";
-import { fmtTimestamp, fmtViews, fmtDuration } from "@/lib/utils";
+import { fmtTimestamp, fmtViews, fmtDuration, parseTimestamp } from "@/lib/utils";
 import { useWorkspace } from "@/components/WorkspaceProvider";
 import { ClipPlayer } from "@/components/ClipPlayer";
 import { ClipThumb } from "@/components/ClipThumb";
 
 const QUICK_PROMPTS = [
   "Times Arab almost died",
-  "When street food turned dark",
-  "Why you don't go to Haiti",
-  "Cartel encounters that escalated",
-  "Moments locals turned on him",
+  "Best street food moments",
+  "Best haircuts around the world",
+  "Kindest strangers he met",
+  "Funniest culture-shock moments",
   "Weirdest religious rituals",
-  "Inside the world's worst slums",
+  "Most beautiful places he filmed",
+  "Cartel encounters that escalated",
 ];
 
 function WorkspaceInner() {
@@ -129,6 +130,21 @@ function WorkspaceInner() {
     });
     const updated = await r.json();
     setComp(updated);
+  }
+
+  async function updateClipTimes(i: number, start: number, end: number) {
+    if (!comp) return;
+    const s = Math.max(0, Math.round(start * 10) / 10);
+    let e = Math.round(end * 10) / 10;
+    if (e <= s) e = s + 1; // keep at least a 1s clip
+    const next = comp.clips.map((c, idx) => (idx === i ? { ...c, start: s, end: e } : c));
+    const r = await fetch(`/api/compilations/${comp.id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clips: next }),
+    });
+    const updated = await r.json();
+    setComp(updated);
+    setRecentComps(p => p.map(x => x.id === updated.id ? updated : x));
   }
 
   async function renameComp(title: string) {
@@ -267,7 +283,7 @@ function WorkspaceInner() {
         <aside className="space-y-3 lg:sticky lg:top-[68px]">
           <PlayerPanel />
           {comp ? (
-            <CompPanel comp={comp} onRemove={removeClip} onMove={moveClip} />
+            <CompPanel comp={comp} onRemove={removeClip} onMove={moveClip} onEditTimes={updateClipTimes} />
           ) : (
             <RecentsPanel recents={recentComps} />
           )}
@@ -425,10 +441,44 @@ function PlayerPanel() {
   );
 }
 
-function CompPanel({ comp, onRemove, onMove }: {
+function TimeField({ value, label, onCommit }: {
+  value: number;
+  label: string;
+  onCommit: (sec: number) => void;
+}) {
+  const [txt, setTxt] = useState(fmtTimestamp(value));
+  const [editing, setEditing] = useState(false);
+  useEffect(() => { if (!editing) setTxt(fmtTimestamp(value)); }, [value, editing]);
+  function commit() {
+    setEditing(false);
+    const sec = parseTimestamp(txt);
+    if (sec === null || Math.abs(sec - value) < 0.05) { setTxt(fmtTimestamp(value)); return; }
+    onCommit(sec);
+  }
+  return (
+    <input
+      aria-label={label}
+      title={`${label} — type m:ss, h:mm:ss, or seconds`}
+      value={txt}
+      onChange={e => setTxt(e.target.value)}
+      onFocus={e => { setEditing(true); e.currentTarget.select(); }}
+      onBlur={commit}
+      onClick={e => e.stopPropagation()}
+      onKeyDown={e => {
+        if (e.key === "Enter") { e.currentTarget.blur(); }
+        else if (e.key === "Escape") { setTxt(fmtTimestamp(value)); setEditing(false); e.currentTarget.blur(); }
+      }}
+      className="w-[3.4rem] bg-transparent text-[10px] font-mono px-1 py-0.5 rounded outline-none focus:bg-white/[0.06] hover:bg-white/[0.04] transition-colors text-center"
+      style={{ color: "var(--accent-hover)", border: "1px solid var(--border)" }}
+    />
+  );
+}
+
+function CompPanel({ comp, onRemove, onMove, onEditTimes }: {
   comp: SavedCompilation;
   onRemove: (i: number) => void;
   onMove: (i: number, dir: -1 | 1) => void;
+  onEditTimes: (i: number, start: number, end: number) => void;
 }) {
   const { preview, state } = useWorkspace();
   return (
@@ -444,6 +494,10 @@ function CompPanel({ comp, onRemove, onMove }: {
           Click Add on any moment in the results to start.
         </p>
       ) : (
+        <>
+        <p className="text-[10.5px] px-1 mb-1.5" style={{ color: "var(--muted-2)" }}>
+          Tap a timestamp to set the exact in/out for your editor.
+        </p>
         <ol className="space-y-1.5 max-h-[60vh] overflow-y-auto pr-0.5">
           {comp.clips.map((c, i) => {
             const playing = state.player?.videoId === c.video_id && Math.abs((state.player?.start || 0) - c.start) < 1;
@@ -466,8 +520,13 @@ function CompPanel({ comp, onRemove, onMove }: {
                     <KindBadge kind={c.kind} />
                   </div>
                   <div className="text-[11px] font-medium clamp-2 leading-snug">{c.video_title}</div>
-                  <div className="text-[10px] font-mono mt-0.5" style={{ color: "var(--accent-hover)" }}>
-                    {fmtTimestamp(c.start)}–{fmtTimestamp(c.end)}
+                  <div className="flex items-center gap-1 mt-1">
+                    <TimeField value={c.start} label="Clip in-point" onCommit={s => onEditTimes(i, s, c.end)} />
+                    <span className="text-[10px]" style={{ color: "var(--muted-2)" }}>–</span>
+                    <TimeField value={c.end} label="Clip out-point" onCommit={s => onEditTimes(i, c.start, s)} />
+                    <span className="text-[10px] font-mono" style={{ color: "var(--muted-2)" }}>
+                      {Math.max(0, Math.round(c.end - c.start))}s
+                    </span>
                   </div>
                   {c.note && <div className="mt-0.5 text-[10.5px] italic clamp-1" style={{ color: "var(--muted)" }}>{c.note}</div>}
                 </div>
@@ -482,6 +541,7 @@ function CompPanel({ comp, onRemove, onMove }: {
             );
           })}
         </ol>
+        </>
       )}
     </div>
   );

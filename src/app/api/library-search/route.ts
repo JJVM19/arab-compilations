@@ -6,6 +6,8 @@ export const maxDuration = 60;
 
 const SYSTEM = `Score how relevant each YouTube video is to a free-form search query.
 
+These are videos by @Arab, an immersion journalist whose catalog covers the FULL spectrum: not only danger (cartels, gangs, war zones, scams) but also food & street food, culture, religion & rituals, haircuts/barbers, markets, kindness of strangers, beautiful places, animals, humour and everyday life. Score calm/positive/everyday queries (e.g. "best haircuts", "best food", "kind locals", "beautiful places") just as seriously as tense ones — judge purely on topical fit, never penalize a query for being low-drama.
+
 A score is 0-100:
 - 90-100: exact match (theme is the dominant subject of the video)
 - 70-89: strong match (theme appears prominently)
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
   const { query, limit = 50 } = await req.json() as Body;
   if (!query?.trim()) return NextResponse.json({ results: [] });
 
-  const cat = getCatalog();
+  const cat = await getCatalog();
   const index = cat.videos.map(v => ({
     id: v.id,
     title: v.title,

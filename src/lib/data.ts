@@ -8,13 +8,19 @@ const CATALOG_PATH = path.join(DATA_DIR, "catalog.json");
 const CHUNKS_PATH = path.join(DATA_DIR, "chunks.json");
 
 /* -----------------------------------------------------------
- * Catalog + chunks — local JSON (static, committed to repo)
+ * Catalog + chunks
+ *
+ * Two sources, merged at read time:
+ *  1. Static JSON committed to the repo (the 100+ baseline videos).
+ *  2. Supabase tables (arab_catalog_videos / arab_catalog_chunks) for videos
+ *     added through the live "Add video" flow — these survive redeploys and
+ *     are shared across instances (Railway's filesystem is ephemeral).
  * --------------------------------------------------------- */
 
 let _catalogCache: { mtime: number; data: Catalog } | null = null;
 let _chunksCache: { mtime: number; data: Record<string, ChunkedVideo> } | null = null;
 
-export function getCatalog(): Catalog {
+function getStaticCatalog(): Catalog {
   const stat = fs.statSync(CATALOG_PATH);
   const mtime = stat.mtimeMs;
   if (_catalogCache && _catalogCache.mtime === mtime) return _catalogCache.data;
@@ -23,11 +29,7 @@ export function getCatalog(): Catalog {
   return data;
 }
 
-export function getVideo(id: string): Video | null {
-  return getCatalog().videos.find(v => v.id === id) || null;
-}
-
-export function getChunks(): Record<string, ChunkedVideo> {
+function getStaticChunks(): Record<string, ChunkedVideo> {
   if (!fs.existsSync(CHUNKS_PATH)) return {};
   const stat = fs.statSync(CHUNKS_PATH);
   const mtime = stat.mtimeMs;
@@ -37,8 +39,150 @@ export function getChunks(): Record<string, ChunkedVideo> {
   return data;
 }
 
-export function getVideoChunks(videoId: string): ChunkedVideo | null {
-  return getChunks()[videoId] || null;
+interface AddedVideoRow {
+  id: string;
+  title: string;
+  description: string;
+  published_at: string | null;
+  duration: string;
+  duration_sec: number;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  url: string;
+  tags: string[] | null;
+  source: string;
+}
+
+function rowToVideo(r: AddedVideoRow): Video {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description ?? "",
+    published_at: r.published_at ?? "",
+    duration: r.duration ?? "",
+    duration_sec: r.duration_sec ?? 0,
+    view_count: r.view_count ?? 0,
+    like_count: r.like_count ?? 0,
+    comment_count: r.comment_count ?? 0,
+    url: r.url || `https://www.youtube.com/watch?v=${r.id}`,
+    tags: r.tags ?? [],
+  };
+}
+
+export async function getCatalog(): Promise<Catalog> {
+  const staticCat = getStaticCatalog();
+  const map = new Map<string, Video>();
+  for (const v of staticCat.videos) map.set(v.id, v);
+  try {
+    const { data, error } = await supabase
+      .from("arab_catalog_videos")
+      .select("*");
+    if (!error && data) {
+      for (const r of data as AddedVideoRow[]) {
+        if (!map.has(r.id)) map.set(r.id, rowToVideo(r));
+      }
+    }
+  } catch {
+    // Supabase unreachable — fall back to the static catalog so the app still works.
+  }
+  const videos = Array.from(map.values())
+    .sort((a, b) => (b.published_at || "").localeCompare(a.published_at || ""));
+  return { cutoff: staticCat.cutoff, count: videos.length, videos };
+}
+
+export async function getVideo(id: string): Promise<Video | null> {
+  const staticV = getStaticCatalog().videos.find(v => v.id === id);
+  if (staticV) return staticV;
+  try {
+    const { data } = await supabase
+      .from("arab_catalog_videos")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    return data ? rowToVideo(data as AddedVideoRow) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getChunks(): Promise<Record<string, ChunkedVideo>> {
+  const merged: Record<string, ChunkedVideo> = { ...getStaticChunks() };
+  try {
+    const { data, error } = await supabase
+      .from("arab_catalog_chunks")
+      .select("video_id, chunks, status");
+    if (!error && data) {
+      for (const row of data as { video_id: string; chunks: unknown; status: string }[]) {
+        if (row.status === "ok" && Array.isArray(row.chunks) && row.chunks.length) {
+          merged[row.video_id] = { id: row.video_id, chunks: row.chunks as ChunkedVideo["chunks"] };
+        }
+      }
+    }
+  } catch {
+    // ignore — static chunks already loaded
+  }
+  return merged;
+}
+
+export async function getVideoChunks(videoId: string): Promise<ChunkedVideo | null> {
+  const staticChunks = getStaticChunks();
+  if (staticChunks[videoId]) return staticChunks[videoId];
+  try {
+    const { data } = await supabase
+      .from("arab_catalog_chunks")
+      .select("chunks, status")
+      .eq("video_id", videoId)
+      .maybeSingle();
+    if (!data || data.status !== "ok") return null;
+    const chunks = data.chunks;
+    if (!Array.isArray(chunks) || !chunks.length) return null;
+    return { id: videoId, chunks: chunks as ChunkedVideo["chunks"] };
+  } catch {
+    return null;
+  }
+}
+
+/* -----------------------------------------------------------
+ * Added-video writes (live "Add video" flow) — Supabase
+ * --------------------------------------------------------- */
+
+export async function findCatalogVideo(id: string): Promise<Video | null> {
+  return getVideo(id);
+}
+
+export async function upsertCatalogVideo(v: Video & { source?: "arab" | "extended" }): Promise<void> {
+  const { error } = await supabase.from("arab_catalog_videos").upsert({
+    id: v.id,
+    title: v.title,
+    description: v.description ?? "",
+    published_at: v.published_at || null,
+    duration: v.duration ?? "",
+    duration_sec: v.duration_sec ?? 0,
+    view_count: v.view_count ?? 0,
+    like_count: v.like_count ?? 0,
+    comment_count: v.comment_count ?? 0,
+    url: v.url || `https://www.youtube.com/watch?v=${v.id}`,
+    tags: v.tags ?? [],
+    source: v.source ?? "arab",
+  }, { onConflict: "id" });
+  if (error) throw error;
+}
+
+export async function upsertCatalogChunks(
+  videoId: string,
+  chunks: ChunkedVideo["chunks"],
+  status: "ok" | "pending" | "error",
+  detail = "",
+): Promise<void> {
+  const { error } = await supabase.from("arab_catalog_chunks").upsert({
+    video_id: videoId,
+    chunks,
+    status,
+    detail,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "video_id" });
+  if (error) throw error;
 }
 
 /* -----------------------------------------------------------

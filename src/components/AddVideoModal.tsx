@@ -9,10 +9,22 @@ interface Props {
   onAdded: () => void;
 }
 
+type AddResult = {
+  ok?: boolean;
+  error?: string;
+  video?: any;
+  chunks_added?: number;
+  transcript?: "ok" | "pending" | "error";
+  source?: "arab" | "extended";
+  detail?: string;
+};
+
 export function AddVideoModal({ open, onClose, onAdded }: Props) {
   const [input, setInput] = useState("");
+  const [source, setSource] = useState<"arab" | "extended">("arab");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ ok?: boolean; error?: string; video?: any; chunks_added?: number; transcript?: string } | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const [result, setResult] = useState<AddResult | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -30,8 +42,10 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
 
   function close() {
     setInput("");
+    setSource("arab");
     setResult(null);
     setBusy(false);
+    setRetrying(false);
     onClose();
   }
 
@@ -43,7 +57,7 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
       const r = await fetch("/api/library/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input, source }),
       });
       const data = await r.json();
       if (!r.ok) {
@@ -56,6 +70,25 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
       setResult({ error: e.message });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function retryTranscript() {
+    if (!result?.video?.id || retrying) return;
+    setRetrying(true);
+    try {
+      const r = await fetch("/api/library/transcript", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ video_id: result.video.id }),
+      });
+      const data = await r.json();
+      setResult(p => p ? { ...p, transcript: data.transcript, chunks_added: data.chunks_added, detail: data.detail } : p);
+      if (data.transcript === "ok") onAdded();
+    } catch {
+      /* keep prior result */
+    } finally {
+      setRetrying(false);
     }
   }
 
@@ -81,14 +114,32 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
             <Plus size={16} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-[15px]">Add a new Arab video</h3>
+            <h3 className="font-semibold text-[15px]">Add a video</h3>
             <p className="mt-0.5 text-[12.5px]" style={{ color: "var(--muted)" }}>
-              Paste a YouTube URL or video ID. Must be from @Arab&apos;s channel.
+              Paste a YouTube URL or 11-char video ID.
             </p>
           </div>
           <button onClick={close} disabled={busy} className="btn btn-ghost btn-sm flex-shrink-0">
             <X size={12} />
           </button>
+        </div>
+
+        {/* Source toggle */}
+        <div className="flex items-center gap-0.5 p-0.5 rounded-md mb-2.5 w-full" style={{ background: "var(--bg-elev)" }}>
+          {([["arab", "Arab upload"], ["extended", "Extended cut"]] as const).map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setSource(val)}
+              disabled={busy}
+              className="flex-1 px-2.5 py-1.5 rounded text-[11.5px] font-medium transition-colors"
+              style={{
+                background: source === val ? "var(--accent)" : "transparent",
+                color: source === val ? "white" : "var(--muted)",
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <input
@@ -102,11 +153,17 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
           disabled={busy}
         />
 
+        {source === "extended" && (
+          <p className="mt-2 text-[11.5px] leading-relaxed" style={{ color: "var(--muted)" }}>
+            For raw/extended footage: upload the MP4 to YouTube as <strong>Unlisted</strong>, then paste the link here so we can pull its transcript.
+          </p>
+        )}
+
         {/* Status */}
         {busy && (
           <div className="mt-4 p-3 rounded surface flex items-center gap-2 text-[12.5px]" style={{ color: "var(--muted)" }}>
             <Loader2 size={13} className="animate-spin" />
-            Fetching metadata + downloading transcript... (~15 seconds)
+            Fetching metadata + transcript… (up to a minute for new uploads)
           </div>
         )}
         {result?.error && (
@@ -116,15 +173,36 @@ export function AddVideoModal({ open, onClose, onAdded }: Props) {
             <span>{result.error}</span>
           </div>
         )}
-        {result?.ok && result.video && (
+        {result?.ok && result.video && result.transcript === "ok" && (
           <div className="mt-4 p-3 rounded flex items-start gap-2 text-[12.5px]"
             style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.3)", color: "#86efac" }}>
             <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="font-medium clamp-2">Added: {result.video.title}</div>
               <div className="text-[11px] mt-0.5 opacity-80">
-                Transcript: {result.transcript === "ok" ? `${result.chunks_added} chunks indexed` : result.transcript === "missing" ? "no captions available" : "download failed"}
+                {result.chunks_added} transcript chunks indexed{result.source === "extended" ? " · extended cut" : ""}
               </div>
+            </div>
+          </div>
+        )}
+        {result?.ok && result.video && result.transcript !== "ok" && (
+          <div className="mt-4 p-3 rounded flex items-start gap-2 text-[12.5px]"
+            style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.3)", color: "#fde68a" }}>
+            <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="font-medium clamp-2">Added: {result.video.title}</div>
+              <div className="text-[11px] mt-0.5 opacity-90">
+                {result.detail || "Transcript not available yet."} It&apos;s in your library and searchable by title — clip search needs the transcript.
+              </div>
+              <button
+                onClick={retryTranscript}
+                disabled={retrying}
+                className="btn btn-sm mt-2"
+                style={{ background: "rgba(234,179,8,0.15)", color: "#fde68a", borderColor: "rgba(234,179,8,0.3)" }}
+              >
+                {retrying ? <Loader2 size={11} className="animate-spin" /> : null}
+                Retry transcript
+              </button>
             </div>
           </div>
         )}

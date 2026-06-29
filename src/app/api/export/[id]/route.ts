@@ -1,5 +1,11 @@
 import { getCompilation } from "@/lib/data";
 
+// Never cache: the CSV must always reflect the latest saved scene order.
+// Without this, Next.js caches the GET handler (and the browser caches the
+// download), so re-exporting after reordering returns the first version.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function fmtTimecode(sec: number): string {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
@@ -33,6 +39,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="${safe || "compilation"}.csv"`,
+      "Cache-Control": "no-store, no-cache, must-revalidate",
     },
   });
 }

@@ -12,12 +12,13 @@ import { fmtDate } from "@/lib/utils";
 
 const QUICK_PROMPTS = [
   "Times Arab almost died",
-  "When street food turned dark",
-  "Why you don't go to Haiti",
-  "Cartel encounters that escalated",
-  "Moments locals turned on him",
+  "Best street food moments",
+  "Best haircuts around the world",
+  "Kindest strangers he met",
+  "Funniest culture-shock moments",
   "Weirdest religious rituals",
-  "Inside the world's worst slums",
+  "Most beautiful places he filmed",
+  "Cartel encounters that escalated",
 ];
 
 export default function TitlesPage() {

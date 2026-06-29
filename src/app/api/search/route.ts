@@ -18,7 +18,12 @@ Short clips (20-60 seconds) that set up the scenario so a stranger could underst
 In the final compilation, context clips will play FIRST, then the moment.
 
 # 2. MOMENT clips ("kind": "moment")
-The actual peak/payoff — the shocking line, the action, the reveal, the wild reaction. The clip a viewer would screenshot. Typical length 30-180 seconds. Stop right after the payoff lands.
+The actual peak/payoff of the theme — whatever makes the moment worth watching. MATCH THE PAYOFF TO THE THEME, don't force drama:
+- Tense theme → the shocking line, the action, the reveal, the wild reaction.
+- Calm/positive theme (best food, haircuts, markets, kindness, beautiful places, funny culture-shock) → the highlight of THAT thing: the tastiest-looking dish, the funniest exchange, the most generous gesture, the most stunning shot, the satisfying reveal.
+The clip a viewer would screenshot or rewind. Typical length 30-180 seconds. Stop right after the payoff lands.
+
+Arab's catalog covers the full spectrum — danger AND food, culture, religion, haircuts, markets, kindness, humour, daily life. If the theme is calm, return calm clips. Never come back empty just because a theme isn't dramatic.
 
 # Per video, aim for:
 - 1-2 context clips
@@ -49,8 +54,8 @@ export async function POST(req: Request) {
   if (!theme?.trim()) {
     return NextResponse.json({ error: "theme required" }, { status: 400 });
   }
-  const cat = getCatalog();
-  const chunks = getChunks();
+  const cat = await getCatalog();
+  const chunks = await getChunks();
 
   // STAGE 1: rank videos by relevance using titles + descriptions
   const videoIndex = cat.videos.map(v => ({

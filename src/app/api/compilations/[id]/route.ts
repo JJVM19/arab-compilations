@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCompilation, upsertCompilation, deleteCompilation } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const c = await getCompilation(params.id);
   if (!c) return NextResponse.json({ error: "not found" }, { status: 404 });

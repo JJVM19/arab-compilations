@@ -7,7 +7,7 @@ export const maxDuration = 60;
 const SYSTEM = `You are a video editor scanning a YouTube transcript to find clips for a compilation. Return both CONTEXT and MOMENT clips:
 
 - "context" — short setup clip (20-60s) that establishes the scenario
-- "moment" — the peak/payoff itself (30-180s), the wild line or action
+- "moment" — the peak/payoff itself (30-180s). Match it to the theme: for a tense theme that's the wild line or action; for a calm/positive theme (food, haircuts, markets, kindness, beautiful places, humour) it's the highlight of that thing. Arab's content spans the full range — return calm clips for calm themes, don't force drama.
 
 Per request: 1-2 context + 2-3 moments (or whatever the video supports).
 
@@ -22,11 +22,11 @@ export async function POST(req: Request) {
   if (!video_id || !theme?.trim()) {
     return NextResponse.json({ error: "video_id and theme required" }, { status: 400 });
   }
-  const cat = getCatalog();
+  const cat = await getCatalog();
   const video = cat.videos.find(v => v.id === video_id);
   if (!video) return NextResponse.json({ error: "video not found" }, { status: 404 });
 
-  const vc = getVideoChunks(video_id);
+  const vc = await getVideoChunks(video_id);
   if (!vc) return NextResponse.json({ video_id, segments: [], note: "no transcript" });
 
   const compact = vc.chunks.map((c: any, i: number) => ({

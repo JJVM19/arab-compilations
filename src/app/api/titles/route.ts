@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getTitles, upsertTitle } from "@/lib/data";
 import type { SavedTitle } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const titles = await getTitles();
   return NextResponse.json({ titles });
