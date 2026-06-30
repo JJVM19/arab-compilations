@@ -11,6 +11,9 @@ interface Ctx {
   playerRef: React.MutableRefObject<ClipPlayerHandle | null>;
   /** Switch the inline player to a different video (or seek if same). */
   preview: (videoId: string, start: number, end?: number) => void;
+  /** True only after a user-initiated preview this session — never on page-load restore. */
+  autoplay: boolean;
+  setAutoplay: (v: boolean) => void;
 }
 
 const WorkspaceCtx = createContext<Ctx | null>(null);
@@ -18,6 +21,9 @@ const WorkspaceCtx = createContext<Ctx | null>(null);
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<WorkspaceState>(EMPTY_WORKSPACE);
   const [hydrated, setHydrated] = useState(false);
+  // Ephemeral (not persisted): the restored player should never autoplay on load,
+  // only after the user actively clicks a clip to preview.
+  const [autoplay, setAutoplay] = useState(false);
   const playerRef = useRef<ClipPlayerHandle | null>(null);
 
   // Hydrate from localStorage on mount
@@ -41,6 +47,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const preview = useCallback((videoId: string, start: number, end?: number) => {
+    setAutoplay(true); // user-initiated → allowed to autoplay
     setState(prev => {
       // Same video: just seek via player ref (no remount)
       if (prev.player?.videoId === videoId && playerRef.current) {
@@ -53,7 +60,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <WorkspaceCtx.Provider value={{ state, update, reset, playerRef, preview }}>
+    <WorkspaceCtx.Provider value={{ state, update, reset, playerRef, preview, autoplay, setAutoplay }}>
       {children}
     </WorkspaceCtx.Provider>
   );

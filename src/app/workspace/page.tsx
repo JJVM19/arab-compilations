@@ -22,7 +22,7 @@ const QUICK_PROMPTS = [
 ];
 
 function WorkspaceInner() {
-  const { state, update } = useWorkspace();
+  const { state, update, setAutoplay } = useWorkspace();
   const sp = useSearchParams();
   const router = useRouter();
   const queryParamId = sp.get("id");
@@ -36,6 +36,8 @@ function WorkspaceInner() {
 
   useEffect(() => { fetch("/api/catalog").then(r => r.json()).then(setCatalog); }, []);
   useEffect(() => { fetch("/api/compilations").then(r => r.json()).then(d => setRecentComps(d.compilations || [])); }, []);
+  // Landing on / returning to this page must not autoplay the restored clip.
+  useEffect(() => { setAutoplay(false); }, [setAutoplay]);
 
   // Sync URL ?id= into workspace state
   useEffect(() => {
@@ -406,7 +408,7 @@ function ResultGroup({ group, meta, addedKey, onAdd }: {
 }
 
 function PlayerPanel() {
-  const { state, playerRef } = useWorkspace();
+  const { state, playerRef, autoplay } = useWorkspace();
   if (!state.player) {
     return (
       <div className="card overflow-hidden">
@@ -428,7 +430,7 @@ function PlayerPanel() {
           ref={playerRef}
           videoId={state.player.videoId}
           initialStart={state.player.start}
-          autoplay
+          autoplay={autoplay}
         />
       </div>
       {state.player.end !== undefined && (
